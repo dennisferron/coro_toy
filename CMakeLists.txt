@@ -3,7 +3,7 @@ project(coro_toy)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(coro_toy main.cpp SandpileView.cpp SandpileView.hpp VertexGrid.cpp VertexGrid.hpp)
+add_executable(coro_toy main.cpp SandpileView.cpp SandpileView.hpp VertexGrid.cpp VertexGrid.hpp SandpileData.cpp SandpileData.hpp Perlin.cpp Perlin.hpp)
 
 target_compile_options(coro_toy
         PRIVATE

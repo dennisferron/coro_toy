@@ -1,5 +1,7 @@
 #pragma once
 
+#include "SandpileData.hpp"
+
 #include <windows.h>
 #include <vector>
 
@@ -50,4 +52,5 @@ private:
 public:
     VertexGrid(std::size_t const data_cols, std::size_t const data_rows);
     void draw(HDC hdc, RECT const& rect);
+    void update_colors(SandpileData const& data);
 };

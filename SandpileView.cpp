@@ -114,7 +114,7 @@ LRESULT SandpileView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
 			GetClientRect(hwnd, &rcClient);
 
             if (!vertex_grid)
-                vertex_grid = new VertexGrid(5, 4);
+                vertex_grid = new VertexGrid(50, 40);
 
             vertex_grid->draw(hdc, rcClient);
 

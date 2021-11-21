@@ -1,4 +1,5 @@
 #include "VertexGrid.hpp"
+#include "Perlin.hpp"
 
 void VertexGrid::generate_vertex(std::size_t col, std::size_t row)
 {
@@ -86,9 +87,9 @@ void VertexGrid::generate_indices()
 }
 
 VertexGrid::VertexGrid(std::size_t const data_cols, std::size_t const data_rows) :
-data_cols(data_cols), data_rows(data_rows),
-all_cols(2*data_cols+1), all_rows(2*data_rows+1),
-num_vertices(all_cols * all_rows)
+    data_cols(data_cols), data_rows(data_rows),
+    all_cols(2*data_cols+1), all_rows(2*data_rows+1),
+    num_vertices(all_cols * all_rows)
 {
     generate_vertices();
     generate_indices();
@@ -119,6 +120,22 @@ void VertexGrid::update_mesh_positions(RECT const& rect)
             update_vertex_position(col, row);
         }
     }
+
+    Perlin perlin;
+
+    for (auto& vert : vertices)
+    {
+        double n = perlin.octave_noise(vert.x, vert.y);
+
+        // roughly translate perlin noise range to 0..1.0
+        n += 1.0;
+        n *= 0.5;
+        int rgb = static_cast<int>(0xFF00*n);
+
+        vert.Red = rgb;
+        vert.Green = rgb;
+        vert.Blue = rgb;
+    }
 }
 
 void VertexGrid::update_vertex_position(std::size_t col, std::size_t row)
@@ -127,4 +144,8 @@ void VertexGrid::update_vertex_position(std::size_t col, std::size_t row)
     TRIVERTEX& vertex = vertices[index];
     vertex.x = get_x(col);
     vertex.y = get_y(row);
+}
+
+void VertexGrid::update_colors(SandpileData const& data)
+{
 }
