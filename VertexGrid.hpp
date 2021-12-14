@@ -1,42 +1,41 @@
 #pragma once
 
-#include "SandpileData.hpp"
+#include "Texture.hpp"
 
 #include <windows.h>
 #include <vector>
+#include <memory>
 
 class VertexGrid
 {
 private:
-    std::size_t const data_cols;
-    std::size_t const data_rows;
-    std::size_t const all_cols;
-    std::size_t const all_rows;
+    std::size_t const num_vert_cols;
+    std::size_t const num_vert_rows;
     std::size_t const num_vertices;
     std::vector<TRIVERTEX> vertices;
     std::vector<LONG> indices;
 
-    RECT rect;
+    std::shared_ptr<Texture> texture;
 
     std::size_t get_index(std::size_t col, std::size_t row)
     {
-        return row * all_cols + col;
+        return row * num_vert_cols + col;
     }
 
-    static LONG lerp(LONG len, std::size_t numerator, std::size_t denominator)
+    static LONG scale(LONG len, std::size_t numerator, std::size_t denominator)
     {
         return ::MulDiv(len, numerator, denominator);
     }
 
-    LONG get_y(std::size_t row) const
+    LONG get_y(std::size_t row, RECT const& rect) const
     {
-        return lerp(rect.bottom-rect.top, row, all_rows-1)
+        return scale(rect.bottom-rect.top, row, num_vert_rows - 1)
                + rect.top;
     }
 
-    LONG get_x(std::size_t col) const
+    LONG get_x(std::size_t col, RECT const& rect) const
     {
-        return lerp(rect.right-rect.left, col, all_cols-1)
+        return scale(rect.right-rect.left, col, num_vert_cols - 1)
                + rect.left;
     }
 
@@ -46,11 +45,13 @@ private:
     void generate_tile(std::size_t col, std::size_t row);
     void generate_indices();
 
-    void update_mesh_positions(RECT const& rect);
-    void update_vertex_position(std::size_t col, std::size_t row);
+    void update_vertex_position(std::size_t col, std::size_t row, RECT const& rect);
+
+    void update_colors();
 
 public:
-    VertexGrid(std::size_t const data_cols, std::size_t const data_rows);
-    void draw(HDC hdc, RECT const& rect);
-    void update_colors(SandpileData const& data);
+    VertexGrid(std::size_t const num_cols, std::size_t const num_rows,
+           std::shared_ptr<Texture> texture);
+    void resize(RECT const& rect);
+    void draw(HDC hdc);
 };

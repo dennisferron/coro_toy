@@ -1,17 +1,8 @@
 #pragma once
 
-#include <vector>
+#include "Vector2.hpp"
 
-struct Vector2 
-{
-	double x;
-	double y;
-		
-	double dot(Vector2 const& other) const
-	{
-		return x*other.x + y*other.y;
-	}
-};
+#include <vector>
 
 class Perlin
 {

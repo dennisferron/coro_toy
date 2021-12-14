@@ -63,10 +63,10 @@ double Perlin::Noise2D(double x, double y) const
 	double xf = x-floor(x);
 	double yf = y-floor(y);
 
-	auto topRight = Vector2(xf-1.0, yf-1.0);
-	auto topLeft = Vector2(xf, yf-1.0);
-	auto bottomRight = Vector2(xf-1.0, yf);
-	auto bottomLeft = Vector2(xf, yf);
+    Vector2 topRight = {xf-1.0, yf-1.0};
+    Vector2 topLeft = {xf, yf-1.0};
+    Vector2 bottomRight = {xf-1.0, yf};
+    Vector2 bottomLeft = {xf, yf};
 	
 	//Select a value in the array for each of the 4 corners
 	int valueTopRight = P[P[X+1]+Y+1];

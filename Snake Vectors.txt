@@ -1,0 +1,103 @@
+Generate long narrow mesh
+Designate an axis (X) as S
+The function f(S) -> (X,Y) gives the point corresponding to S, however
+Also need function g(S) -> normalized vector which tells angle of Y from the new point.
+
+s = x;
+u = offset(s);
+v = normal(s);
+p = u + lerp(u, y);
+
+Snake is defined as an initial orientation followed by further turns, such as:
+^^^>^  or  v<^>>v
+
+We have to look ahead 1, because the radiused 90 degree bend has to start before the turn is taken.
+
+The segments of S simply add via vector addition; for example:
+
+f_S2 = radius(S-2.0, V2, V3) + f_S1(2)
+f_S1 = (S-1.0)*V1 + f_S0(1.0)
+f_S0 = S * V0
+
+Where Vn is vector of direction of that segment, and radius(t, v0, v1) is a function
+which takes a starting heading (v0) and finishing heading (v1) and smoothly bends
+from one to the other.  When "t" is 0.0 then the function returns 0,0 (because it
+must start from end of previous segment).  When "t" is 1.0 it should return:
+(v0+v1)/2.0 because 1/2 of v0 takes it to the center of the cell and 1/2 of v1
+takes it to the side of the cell in direction of the next cell.
+We could simply use t*(v0+v1)/2.0, but that would generate a straight diagonal.
+It might look better to curve it out some.  Something like:
+
+radius(t, v0, v1) = integrate (1.0-u)*v0+u*v1 du over 0..t 
+
+Which should produce a section of a circle by pulling v0 into v1 gradually.
+However there's probably a way to do it more directly with trig functions and angle.
+Or do we want to use a spline function or slightly different integration function?
+
+Actually a simpler definition would be (for case of v0=(0,1) and v1=(1,0):
+
+radius(t, v0, v1) = (x: cos(t), y: sin(t))
+
+How do we make this general for any v0,v1?  First idea is add v0+v1, then multiply
+components of that diagonal vector by cos(t) and sin(t).  There has to be more to it
+than that however because, there's a difference between up-over vs over-up.  Even though
+both end up in the same spot (+1,+1) the former is a convex curve and the latter is a
+concave curve when viewed as "hills".
+
+OK so if we take the starting point and follow only v1, that actually puts us at the
+center of the circle that the radius is going around.  Then...
+
+Ah forget it let's cut to the chase and look up Bezier curves on the internet.
+
+Per Wikipedia and Stackoverflow, quadratic Bezier is:
+
+B(t) = (1-t)*(1-t)*P0 + 2*(1-t)*t*P1 + t*t*P2
+x = (1 - t) * (1 - t) * p[0].x + 2 * (1 - t) * t * p[1].x + t * t * p[2].x;
+y = (1 - t) * (1 - t) * p[0].y + 2 * (1 - t) * t * p[1].y + t * t * p[2].y;
+
+where P0 is the start point and P2 is the end point.  P1 is the control point.
+Since we're chaining curve segments, we can set P0 to (0,0) which simplifies things.
+P2 is going to be (v0 + v1)/2.0 because the cells are unit squares entered at edge centers.
+P1, the control point is simply v1/2.0 which places the circle center.  
+
+Zeroing out P0 gives us:
+
+B(t) = 2*(1-t)*t*P1 + t*t*P2
+x = 2*(1-t)*t*p1.x + t*t*p2.x;
+y = 2*(1-t)*t*p1.y + t*t*p2.y;
+
+If we substitute for P1 and P2 we get:
+
+B(t) = (1-t)*t*v_1 + 0.5*t*t*(v_0 + v_1)
+
+Which Wolfram Alpha simplifies to:
+
+B(t) = t^2 (0.5 v_0 - 0.5 v_1) + t v_1
+B(t) = t*t*(0.5*v_0 - 0.5*v_1) + t*v_1
+
+Or expanded form:
+B(t) = 0.5 t^2 v_0 - 0.5 t^2 v_1 + t v_1
+
+If we define k=0.5*t*t, Wolfram Alpha gives a really simple equation:
+B(t) = v_1*(t-k) + k*v_0
+
+which should make for simple code!
+
+double k = 0.5*t*t;
+double t_k = k - t;
+B_t.x = v_1.x * t_k + k*v_0.x;
+B_t.y = v_1.y * t_k + k*v_0.y;
+
+On second thoughts, maybe I better stick with regular quadratic bezier:
+I can use it to calculate all of the sections including the straight ones.
+
+Using Bezier segments, the center of the cell is always the control point (P1).
+P1 is v0/2 because it brings us from previous endpoint to current cell.
+P0 comes from the previous segment's end (first cell either use center or ad hoc calc).
+P2 is (v0+v1)/2 where v0 is the heading taken to get here and v1 is heading after here.
+
+If you look at the iterated case it's:
+v0/2 + (v0+v1)/2 + (v1+v2)/2 + (v2+v3)/2 ... 
+
+So it's just the last vector which is left 1/2.  Could generate last section (probably head)
+by just using the last vector twice in place of knowing what the next one will be.

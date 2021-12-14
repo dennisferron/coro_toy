@@ -7,8 +7,11 @@ class SandpileView
 {
 private:
     HWND hwnd = 0;
+    RECT old_size = {};
+
     int timer_id = 1; // TODO: Pass per-instance?
     VertexGrid* vertex_grid = nullptr;
+    VertexGrid* snake = nullptr;
 
     static const char* window_class_name;
 

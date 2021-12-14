@@ -5,9 +5,14 @@
 
 char const* SandpileView::window_class_name = "SandpileView";
 
-SandpileView::SandpileView(HINSTANCE hInstance) :
-        vertex_grid()
+SandpileView::SandpileView(HINSTANCE hInstance)
 {
+    Color bg_low = { 0.1, 0.1, 1.0 };  // Blue
+    Color bg_high = { 1.0, 1.0, 0.1 }; // Yellow
+    auto background = std::make_shared<Texture>(bg_low, bg_high);
+    vertex_grid = new VertexGrid(50, 40, background);
+    //snake = new VertexGrid(20, 4);
+
     // TODO: Refactor window class registration into a singleton event.
     WNDCLASSEX wc;
 
@@ -113,10 +118,13 @@ LRESULT SandpileView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
             RECT rcClient;
 			GetClientRect(hwnd, &rcClient);
 
-            if (!vertex_grid)
-                vertex_grid = new VertexGrid(50, 40);
+            if (!EqualRect(&rcClient, &old_size))
+            {
+                old_size = rcClient;
+                vertex_grid->resize(rcClient);
+            }
 
-            vertex_grid->draw(hdc, rcClient);
+            vertex_grid->draw(hdc);
 
             constexpr int num_vertices = 5;
             TRIVERTEX vertex[num_vertices];
@@ -151,7 +159,7 @@ LRESULT SandpileView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
             {
                 // Create an array of TRIVERTEX structures that describe
                 // positional and color values for each vertex.
-                vertex[0].x     = 150;
+                vertex[0].x     = 15;
                 vertex[0].y     = 0;
                 vertex[0].Red   = 0xff00;
                 vertex[0].Green = 0x8000;
@@ -159,14 +167,14 @@ LRESULT SandpileView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
                 vertex[0].Alpha = 0x0000;
 
                 vertex[1].x     = 0;
-                vertex[1].y     = 150;
+                vertex[1].y     = 15;
                 vertex[1].Red   = 0x9000;
                 vertex[1].Green = 0x0000;
                 vertex[1].Blue  = 0x9000;
                 vertex[1].Alpha = 0x0000;
 
-                vertex[2].x     = 300;
-                vertex[2].y     = 150;
+                vertex[2].x     = 30;
+                vertex[2].y     = 15;
                 vertex[2].Red   = 0x9000;
                 vertex[2].Green = 0x0000;
                 vertex[2].Blue  = 0x9000;

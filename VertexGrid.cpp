@@ -6,20 +6,20 @@ void VertexGrid::generate_vertex(std::size_t col, std::size_t row)
     static int count = 0;
     ++count;
     TRIVERTEX vertex;
-    vertex.x = get_x(col);
-    vertex.y = get_y(row);
+    vertex.x = 0;
+    vertex.y = 0;
     vertex.Alpha = 0x0000;
-    vertex.Red = count%2? 0 : lerp(0xFF00, col, all_cols);
-    vertex.Green = count%3? 0 : lerp(0xFF00, row, all_rows);
-    vertex.Blue = count%4==0? 0: lerp(0xFF00, row+col, all_rows+all_cols);
+    vertex.Red = 0;
+    vertex.Green = 0;
+    vertex.Blue = 0;
     vertices.push_back(vertex);
 }
 
 void VertexGrid::generate_vertices()
 {
-    for (std::size_t row=0; row<all_rows; row++)
+    for (std::size_t row=0; row < num_vert_rows; row++)
     {
-        for (std::size_t col=0; col<all_cols; col++)
+        for (std::size_t col=0; col < num_vert_cols; col++)
         {
             generate_vertex(col, row);
         }
@@ -77,29 +77,27 @@ void VertexGrid::generate_tile(std::size_t col, std::size_t row)
 
 void VertexGrid::generate_indices()
 {
-    for (std::size_t row=0; row<all_rows-1; row++)
+    for (std::size_t row=0; row < num_vert_rows - 1; row++)
     {
-        for (std::size_t col=0; col<all_cols-1; col++)
+        for (std::size_t col=0; col < num_vert_cols - 1; col++)
         {
             generate_tile(col, row);
         }
     }
 }
 
-VertexGrid::VertexGrid(std::size_t const data_cols, std::size_t const data_rows) :
-    data_cols(data_cols), data_rows(data_rows),
-    all_cols(2*data_cols+1), all_rows(2*data_rows+1),
-    num_vertices(all_cols * all_rows)
+VertexGrid::VertexGrid(std::size_t const num_cols, std::size_t const num_rows,
+                       std::shared_ptr<Texture> texture) :
+        num_vert_cols(2 * num_cols + 1), num_vert_rows(2 * num_rows + 1),
+        num_vertices(num_vert_cols * num_vert_rows),
+        texture(texture)
 {
     generate_vertices();
     generate_indices();
 }
 
-void VertexGrid::draw(HDC hdc, RECT const& rect)
+void VertexGrid::draw(HDC hdc)
 {
-    if (!EqualRect(&rect,&this->rect))
-        VertexGrid::update_mesh_positions(rect);
-
     GradientFill(
             hdc,
             &vertices[0],
@@ -109,43 +107,35 @@ void VertexGrid::draw(HDC hdc, RECT const& rect)
             GRADIENT_FILL_TRIANGLE);
 }
 
-void VertexGrid::update_mesh_positions(RECT const& rect)
+void VertexGrid::resize(RECT const& rect)
 {
-    this->rect = rect;
-
-    for (std::size_t row=0; row<all_rows; row++)
+    for (std::size_t row=0; row < num_vert_rows; row++)
     {
-        for (std::size_t col=0; col<all_cols; col++)
+        for (std::size_t col=0; col < num_vert_cols; col++)
         {
-            update_vertex_position(col, row);
+            update_vertex_position(col, row, rect);
         }
     }
 
-    Perlin perlin;
-
-    for (auto& vert : vertices)
-    {
-        double n = perlin.octave_noise(vert.x, vert.y);
-
-        // roughly translate perlin noise range to 0..1.0
-        n += 1.0;
-        n *= 0.5;
-        int rgb = static_cast<int>(0xFF00*n);
-
-        vert.Red = rgb;
-        vert.Green = rgb;
-        vert.Blue = rgb;
-    }
+    update_colors();
 }
 
-void VertexGrid::update_vertex_position(std::size_t col, std::size_t row)
+void VertexGrid::update_vertex_position(std::size_t col, std::size_t row, RECT const& rect)
 {
     auto index = get_index(col, row);
     TRIVERTEX& vertex = vertices[index];
-    vertex.x = get_x(col);
-    vertex.y = get_y(row);
+    vertex.x = get_x(col, rect);
+    vertex.y = get_y(row, rect);
 }
 
-void VertexGrid::update_colors(SandpileData const& data)
+void VertexGrid::update_colors()
 {
+    for (auto& vert : vertices)
+    {
+        Color c = texture->color_at(vert.x, vert.y);
+
+        vert.Red = static_cast<int>(0xFF00*c.R);
+        vert.Green = static_cast<int>(0xFF00*c.G);
+        vert.Blue = static_cast<int>(0xFF00*c.B);
+    }
 }
