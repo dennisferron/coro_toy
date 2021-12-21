@@ -1,5 +1,8 @@
 #include "VertexGrid.hpp"
 #include "Perlin.hpp"
+#include "WindowsErrorException.hpp"
+
+#include <sstream>
 
 void VertexGrid::generate_vertex(std::size_t col, std::size_t row)
 {
@@ -13,6 +16,7 @@ void VertexGrid::generate_vertex(std::size_t col, std::size_t row)
     vertex.Green = 0;
     vertex.Blue = 0;
     vertices.push_back(vertex);
+    positions.push_back({0, 0});
 }
 
 void VertexGrid::generate_vertices()
@@ -98,13 +102,18 @@ VertexGrid::VertexGrid(std::size_t const num_cols, std::size_t const num_rows,
 
 void VertexGrid::draw(HDC hdc)
 {
-    GradientFill(
+    bool result = GradientFill(
             hdc,
             &vertices[0],
             vertices.size(),
             &indices[0],
             indices.size()/3,
             GRADIENT_FILL_TRIANGLE);
+
+    if (!result)
+    {
+        throw WindowsErrorException::FromGetLastError("GradientFill returned false");
+    }
 }
 
 void VertexGrid::resize(RECT const& rect)
@@ -124,18 +133,71 @@ void VertexGrid::update_vertex_position(std::size_t col, std::size_t row, RECT c
 {
     auto index = get_index(col, row);
     TRIVERTEX& vertex = vertices[index];
-    vertex.x = get_x(col, rect);
-    vertex.y = get_y(row, rect);
+    Vector2& pos = positions[index];
+    vertex.x = pos.x = get_x(col, rect);
+    vertex.y = pos.y = get_y(row, rect);
 }
 
 void VertexGrid::update_colors()
 {
-    for (auto& vert : vertices)
+    for (std::size_t i=0; i<vertices.size(); i++)
     {
-        Color c = texture->color_at(vert.x, vert.y);
+        auto const& pos = positions[i];
+        Color c = texture->color_at(pos.x, pos.y);
 
+        auto& vert = vertices[i];
         vert.Red = static_cast<int>(0xFF00*c.R);
         vert.Green = static_cast<int>(0xFF00*c.G);
         vert.Blue = static_cast<int>(0xFF00*c.B);
+    }
+}
+
+void VertexGrid::shape()
+{
+    constexpr double top = 20;
+    constexpr double bottom = 50;
+    constexpr double height = bottom - top;
+    constexpr double middle = top + height/2;
+
+    constexpr double left = 10;
+    constexpr double right = 200;
+    constexpr double width = right - left;
+
+    auto f = [](double v, double scale)
+        { return v<0? std::lerp(0.0, -scale, -v) : std::lerp(0.0, scale, v); };
+
+    for (auto& pos : positions)
+    {
+        double u = (pos.x - left) / width;
+        double v = (pos.y - middle) / (height/2);
+
+        double scale;
+
+        if (u < 0.15)
+            scale = 0.30*sqrt(50*u);
+        else if (u < 0.3)
+            scale = 0.5 + 2.5*(0.3-u);
+        else if (u < 0.75)
+            scale = 1.0;
+        else
+            scale = 1.0-3*(u-0.75);
+
+        if (scale < 0.28)
+            scale = scale;// 0.28;
+        else if (scale > 1.2)
+            scale = 1.2;
+
+        pos.y = f(v,scale)*(height/2) + middle;
+    }
+}
+
+void VertexGrid::wriggle()
+{
+    for (std::size_t i=0; i<vertices.size(); i++)
+    {
+        auto const& pos = positions[i];
+        auto& vert = vertices[i];
+        vert.x = pos.x;
+        vert.y = pos.y; // + 2 * sin(0.1*pos.x);
     }
 }

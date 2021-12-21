@@ -1,6 +1,5 @@
 #pragma once
 
-
 struct Color
 {
     double R;
@@ -18,6 +17,21 @@ struct Color
             lerp(G, x.G),
             lerp(B, x.B)
         };
+    }
+
+    int red_int() const
+    {
+        return static_cast<int>(255*R);
+    }
+
+    int green_int() const
+    {
+        return static_cast<int>(255*G);
+    }
+
+    int blue_int() const
+    {
+        return static_cast<int>(255*B);
     }
 };
 

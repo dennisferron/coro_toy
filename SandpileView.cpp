@@ -11,7 +11,13 @@ SandpileView::SandpileView(HINSTANCE hInstance)
     Color bg_high = { 1.0, 1.0, 0.1 }; // Yellow
     auto background = std::make_shared<Texture>(bg_low, bg_high);
     vertex_grid = new VertexGrid(50, 40, background);
-    //snake = new VertexGrid(20, 4);
+
+    Color sn_low = { 0.5, 0.1, 0.1 };
+    Color sn_high = { 0.0, 0.8, 0.0 };
+    auto sn_texture = std::make_shared<Texture>(sn_low, sn_high);
+    snake = new Snake(sn_texture);
+    //snake->resize(RECT { 10, 20, 200, 50 });
+    //snake->shape();
 
     // TODO: Refactor window class registration into a singleton event.
     WNDCLASSEX wc;
@@ -125,6 +131,7 @@ LRESULT SandpileView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
             }
 
             vertex_grid->draw(hdc);
+            snake->draw(hdc);
 
             constexpr int num_vertices = 5;
             TRIVERTEX vertex[num_vertices];
@@ -154,7 +161,7 @@ LRESULT SandpileView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
                 gRect.LowerRight = 4;
 
                 // Draw a shaded rectangle.
-                GradientFill(hdc, vertex, num_vertices, &gRect, 1, GRADIENT_FILL_RECT_V);
+                //GradientFill(hdc, vertex, num_vertices, &gRect, 1, GRADIENT_FILL_RECT_V);
             }
             {
                 // Create an array of TRIVERTEX structures that describe
@@ -188,7 +195,7 @@ LRESULT SandpileView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
                 gTriangle.Vertex3 = 2;
 
 // Draw a shaded triangle.
-                GradientFill(hdc, vertex, num_vertices, &gTriangle, 1, GRADIENT_FILL_TRIANGLE);
+                //GradientFill(hdc, vertex, num_vertices, &gTriangle, 1, GRADIENT_FILL_TRIANGLE);
             }
 
 			EndPaint(hwnd, &ps);

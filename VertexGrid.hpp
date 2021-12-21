@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Texture.hpp"
+#include "Vector2.hpp"
 
 #include <windows.h>
 #include <vector>
@@ -14,6 +15,7 @@ private:
     std::size_t const num_vertices;
     std::vector<TRIVERTEX> vertices;
     std::vector<LONG> indices;
+    std::vector<Vector2> positions;
 
     std::shared_ptr<Texture> texture;
 
@@ -54,4 +56,6 @@ public:
            std::shared_ptr<Texture> texture);
     void resize(RECT const& rect);
     void draw(HDC hdc);
+    void shape();
+    void wriggle();
 };

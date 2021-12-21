@@ -1,6 +1,8 @@
 #pragma once
 
 #include "VertexGrid.hpp"
+#include "Snake.hpp"
+
 #include <windows.h>
 
 class SandpileView
@@ -11,7 +13,7 @@ private:
 
     int timer_id = 1; // TODO: Pass per-instance?
     VertexGrid* vertex_grid = nullptr;
-    VertexGrid* snake = nullptr;
+    Snake* snake = nullptr;
 
     static const char* window_class_name;
 
