@@ -5,6 +5,23 @@ Snake::Snake(std::shared_ptr<Texture> texture) :
 {
 }
 
+Vector2 Snake::transform(Vector2 in) const
+{
+    // Actual extreme values are top is 9.5 and bottom is 90.5
+    // however since bottom is draw last more of the ellipse is visible.
+    // Can mitigate that by skewing window over scale texture by using 80.
+    double height = 80 - 10;
+    double y_origin = 10 + height/2;
+    double y_centered = in.y - y_origin;
+    double y_scaled = y_centered / (height/2); // +/-1.0
+    constexpr double PI = 3.14159265;
+    double theta = y_scaled * PI * 0.5;
+    double radius = height / PI;  // stretched over half the circumference
+    double y_new = sin(theta) * radius + y_origin;
+    //double y_new = (1.0 - abs(y_scaled)) * y_centered + y_origin;
+    return { in.x, lerp(in.y, y_new, phase) };
+}
+
 void Snake::draw(HDC hdc)
 {
     RECT rect = { 10, 20, 410, 80 };
@@ -37,7 +54,31 @@ void Snake::draw(HDC hdc)
 
             double y_offset = should_offset ? 3.5 : -3.5;
 
-            Ellipse(hdc, x-7, y_offset+y-7, x+7, y_offset+y+7);
+            Vector2 top_left = transform({ x-7, y_offset+y-7 });
+            Vector2 bottom_right = transform({x+7, y_offset+y+7});
+
+            Ellipse(hdc,
+                    top_left.x,
+                    top_left.y,
+                    bottom_right.x,
+                    bottom_right.y);
         }
+    }
+}
+
+void Snake::step_animation(unsigned int delta_ms)
+{
+    constexpr double period_seconds = 1.0;
+    double delta_phase = (delta_ms / 1000.0) / period_seconds;
+    phase += phase_dir * delta_phase;
+    if (phase_dir > 0.0 && phase > 1.0)
+    {
+        phase = 1.0;
+        phase_dir = -1.0;
+    }
+    else if (phase_dir < 0.0 && phase < 0.0)
+    {
+        phase = 0.0;
+        phase_dir = 1.0;
     }
 }

@@ -58,6 +58,7 @@ SandpileView::SandpileView(HINSTANCE hInstance)
         throw std::runtime_error("SandpileView window registration failed.");
     }
 
+    // This is handled in WM_CREATE, instead.
     //SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 }
 
@@ -106,7 +107,7 @@ LRESULT SandpileView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 		case WM_CREATE:
 		{
-			if(!SetTimer(hwnd, timer_id, 50, nullptr))
+			if(!SetTimer(hwnd, timer_id, timer_ms, nullptr))
 				MessageBox(hwnd, "Could not SetTimer()!", "Error", MB_OK | MB_ICONEXCLAMATION);
             break;
 		}
@@ -208,8 +209,10 @@ LRESULT SandpileView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
 
 			GetClientRect(hwnd, &rcClient);
 
-			//UpdateBall(&rcClient);
-			//DrawBall(hdc, &rcClient);
+            vertex_grid->draw(hdc);
+
+            snake->step_animation(timer_ms);
+            snake->draw(hdc);
 
 			ReleaseDC(hwnd, hdc);
 		}

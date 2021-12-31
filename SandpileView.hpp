@@ -12,6 +12,8 @@ private:
     RECT old_size = {};
 
     int timer_id = 1; // TODO: Pass per-instance?
+    unsigned int timer_ms = 50;
+
     VertexGrid* vertex_grid = nullptr;
     Snake* snake = nullptr;
 
