@@ -31,3 +31,17 @@ Vector2 normal_bezier(
         .rotate90()
         .normalize();
 }
+
+Bezier::Bezier(const Vector2& p0, const Vector2& p1, const Vector2& p2) :
+        p0(p0), p1(p1), p2(p2)
+{}
+
+Vector2 Bezier::pos_at(const double& t) const
+{
+    return quadratic_bezier(t, p0, p1, p2);
+}
+
+Vector2 Bezier::normal_at(const double& t) const
+{
+    return normal_bezier(t, p0, p1, p2);
+}

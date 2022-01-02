@@ -40,7 +40,7 @@ struct Vector2
 
     friend Vector2 operator +(Vector2 const& a, Vector2 const& b)
     {
-        return { a.x+b.x, a.y*b.y };
+        return { a.x+b.x, a.y+b.y };
     }
 };
 

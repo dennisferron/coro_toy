@@ -2,15 +2,16 @@
 
 #include "Vector2.hpp"
 
-Vector2 quadratic_bezier(
-        double const& t,
-        Vector2 const& p0,
-        Vector2 const& p1,
-        Vector2 const& p2);
-
 class Bezier
 {
+private:
+    Vector2 p0;
+    Vector2 p1;
+    Vector2 p2;
 public:
+    Bezier(const Vector2& p0, const Vector2& p1, const Vector2& p2);
+    Vector2 pos_at(double const& t) const;
+    Vector2 normal_at(double const& t) const;
 };
 
 
