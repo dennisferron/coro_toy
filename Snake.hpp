@@ -14,6 +14,14 @@ private:
     double phase = 0.0;
     double phase_dir = 1.0;
 
+    static constexpr double scale_spacing = 10;
+    static constexpr double scale_radius = 7;
+    static constexpr int scale_rows = 6;
+    static constexpr int scale_cols = 40;
+    static constexpr double scales_height = scale_rows * scale_spacing;
+    static constexpr double scales_width = scale_cols * scale_spacing;
+    static constexpr RECT texture_rect = {10, 20, 410, 80 };
+
     Vector2 transform(Vector2 in) const;
 
 public:

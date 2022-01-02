@@ -11,8 +11,8 @@ Vector2 Snake::transform(Vector2 in) const
     // Actual extreme values are top is 9.5 and bottom is 90.5
     // however since bottom is draw last more of the ellipse is visible.
     // Can mitigate that by skewing window over scale texture by using 80.
-    double height = 90 - 10;
-    double y_origin = 10 + height/2;
+    double height = scales_height;
+    double y_origin = height/2;
     double y_centered = in.y - y_origin;
     double y_scaled = y_centered / (height/2); // +/-1.0
     constexpr double PI = 3.14159265;
@@ -21,7 +21,7 @@ Vector2 Snake::transform(Vector2 in) const
     double y_new = sin(theta) * radius + y_origin;
 
     Bezier bez({0, 0}, {250*phase,(1-phase)*125}, {250,250});
-    double s = (in.x - 10) / 400;
+    double s = in.x / scales_width;
     Vector2 bz_org = bez.pos_at(s);
     Vector2 bz_ofs = y_new * bez.normal_at(s);
     Vector2 bz_pos = bz_org + bz_ofs;
@@ -32,18 +32,15 @@ Vector2 Snake::transform(Vector2 in) const
 
 void Snake::draw(HDC hdc)
 {
-    RECT rect = { 10, 20, 410, 80 };
-
-    double scale_width = 10;
-    double scale_height = 10;
-
     bool should_offset = false;
 
-    for (double x = rect.left; x < rect.right; x+=scale_width)
+    for (int col = 0; col < scale_cols; col++)
     {
+        double x = col * scale_spacing;
         should_offset = !should_offset;
-        for (double y=rect.top; y<rect.bottom; y+=scale_height)
+        for (int row = 0; row < scale_rows; row++)
         {
+            double y = row * scale_spacing;
             Color scale_color = texture->color_at(x, y);
             int r = scale_color.red_int();
             int g = scale_color.green_int();
@@ -60,11 +57,11 @@ void Snake::draw(HDC hdc)
             SelectObject(hdc, GetStockObject(DC_PEN));
             SetDCPenColor(hdc, RGB(r2,g2,b2));
 
-            double y_offset = should_offset ? 3.5 : -3.5;
+            double y_offset = should_offset ? scale_radius : -scale_radius;
 
             Vector2 pos = transform({x, y+y_offset});
-            Vector2 top_left = { pos.x-7, pos.y-7 };
-            Vector2 bottom_right = {pos.x+7, pos.y+7};
+            Vector2 top_left = { pos.x-scale_radius, pos.y-scale_radius };
+            Vector2 bottom_right = {pos.x+scale_radius, pos.y+scale_radius};
 
             Ellipse(hdc,
                     top_left.x,
