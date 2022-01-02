@@ -8,9 +8,6 @@ Snake::Snake(std::shared_ptr<Texture> texture) :
 
 Vector2 Snake::transform(Vector2 in) const
 {
-    // Actual extreme values are top is 9.5 and bottom is 90.5
-    // however since bottom is draw last more of the ellipse is visible.
-    // Can mitigate that by skewing window over scale texture by using 80.
     double height = scales_height;
     double y_origin = height/2;
     double y_centered = in.y - y_origin;
@@ -20,14 +17,23 @@ Vector2 Snake::transform(Vector2 in) const
     double radius = height / PI;  // stretched over half the circumference
     double y_new = sin(theta) * radius + y_origin;
 
-    Bezier bez({0, 0}, {250*phase,(1-phase)*125}, {250,250});
+    double right = scale_cols*scale_spacing*0.6;
+    double bottom = scale_cols*scale_spacing*0.6;
+    Bezier bez({0, 0}, {right*phase,(1-phase)*bottom}, {right,bottom});
     double s = in.x / scales_width;
     Vector2 bz_org = bez.pos_at(s);
     Vector2 bz_ofs = y_new * bez.normal_at(s);
     Vector2 bz_pos = bz_org + bz_ofs;
 
-    //return { lerp(in.x, bz_pos.x, phase), lerp(in.y, bz_pos.y, phase) };
+    //return { in.x, in.y+20};
+    //return { in.x, y_new+20};
     return { bz_pos.x, bz_pos.y };
+
+    if (phase < 0.5)
+        return { in.x, lerp(in.y, y_new, 2*phase)};
+    else
+        return { lerp(in.x, bz_pos.x, 2*(phase-0.5)),
+                 lerp(y_new, bz_pos.y, 2*(phase-0.5)) };
 }
 
 void Snake::draw(HDC hdc)
@@ -57,7 +63,13 @@ void Snake::draw(HDC hdc)
             SelectObject(hdc, GetStockObject(DC_PEN));
             SetDCPenColor(hdc, RGB(r2,g2,b2));
 
-            double y_offset = should_offset ? scale_radius : -scale_radius;
+            double y_offset = should_offset ? scale_radius/2 : -scale_radius/2;
+
+            // The bottom row of scales stands out too much because no
+            // further row overlaps them. Tweaking the offset works to
+            // smooth the outline because it pushes the bumpy side into
+            // the more squashed portion of the sin(theta) transform.
+            y_offset += scale_radius/2;
 
             Vector2 pos = transform({x, y+y_offset});
             Vector2 top_left = { pos.x-scale_radius, pos.y-scale_radius };

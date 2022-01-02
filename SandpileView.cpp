@@ -24,7 +24,7 @@ SandpileView::SandpileView(HINSTANCE hInstance)
 
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.style = 0;
-    wc.lpfnWndProc = WndProc;
+    wc.lpfnWndProc = SandpileView::WndProc_static;
     wc.cbClsExtra = 0;
     wc.cbWndExtra = 0;
     wc.hInstance = hInstance;
@@ -68,7 +68,7 @@ void SandpileView::show_window(int nCmdShow)
     UpdateWindow(hwnd);
 }
 
-LRESULT CALLBACK SandpileView::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK SandpileView::WndProc_static(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
     {
@@ -125,79 +125,7 @@ LRESULT SandpileView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
             RECT rcClient;
 			GetClientRect(hwnd, &rcClient);
 
-            if (!EqualRect(&rcClient, &old_size))
-            {
-                old_size = rcClient;
-                vertex_grid->resize(rcClient);
-            }
-
-            vertex_grid->draw(hdc);
-            snake->draw(hdc);
-
-            constexpr int num_vertices = 5;
-            TRIVERTEX vertex[num_vertices];
-
-            {
-                // Create an array of TRIVERTEX structures that describe
-                // positional and color values for each vertex. For a rectangle,
-                // only two vertices need to be defined: upper-left and lower-right.
-                vertex[3].x = 10;
-                vertex[3].y = 10;
-                vertex[3].Red = 0xd000;
-                vertex[3].Green = 0xd000;
-                vertex[3].Blue = 0x3000;
-                vertex[3].Alpha = 0x0000;
-
-                vertex[4].x = 30;
-                vertex[4].y = 30;
-                vertex[4].Red = 0x8000;
-                vertex[4].Green = 0x8000;
-                vertex[4].Blue = 0x0000;
-                vertex[4].Alpha = 0x0000;
-
-                // Create a GRADIENT_RECT structure that
-                // references the TRIVERTEX vertices.
-                GRADIENT_RECT gRect;
-                gRect.UpperLeft = 3;
-                gRect.LowerRight = 4;
-
-                // Draw a shaded rectangle.
-                //GradientFill(hdc, vertex, num_vertices, &gRect, 1, GRADIENT_FILL_RECT_V);
-            }
-            {
-                // Create an array of TRIVERTEX structures that describe
-                // positional and color values for each vertex.
-                vertex[0].x     = 15;
-                vertex[0].y     = 0;
-                vertex[0].Red   = 0xff00;
-                vertex[0].Green = 0x8000;
-                vertex[0].Blue  = 0x0000;
-                vertex[0].Alpha = 0x0000;
-
-                vertex[1].x     = 0;
-                vertex[1].y     = 15;
-                vertex[1].Red   = 0x9000;
-                vertex[1].Green = 0x0000;
-                vertex[1].Blue  = 0x9000;
-                vertex[1].Alpha = 0x0000;
-
-                vertex[2].x     = 30;
-                vertex[2].y     = 15;
-                vertex[2].Red   = 0x9000;
-                vertex[2].Green = 0x0000;
-                vertex[2].Blue  = 0x9000;
-                vertex[2].Alpha = 0x0000;
-
-// Create a GRADIENT_TRIANGLE structure that
-// references the TRIVERTEX vertices.
-                GRADIENT_TRIANGLE gTriangle;
-                gTriangle.Vertex1 = 0;
-                gTriangle.Vertex2 = 1;
-                gTriangle.Vertex3 = 2;
-
-// Draw a shaded triangle.
-                //GradientFill(hdc, vertex, num_vertices, &gTriangle, 1, GRADIENT_FILL_TRIANGLE);
-            }
+            DrawScene(hdc, rcClient);
 
 			EndPaint(hwnd, &ps);
             break;
@@ -209,10 +137,8 @@ LRESULT SandpileView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
 
 			GetClientRect(hwnd, &rcClient);
 
-            vertex_grid->draw(hdc);
-
             snake->step_animation(timer_ms);
-            snake->draw(hdc);
+            DrawScene(hdc, rcClient);
 
 			ReleaseDC(hwnd, hdc);
 		}
@@ -229,4 +155,33 @@ LRESULT SandpileView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 	}
 	return 0;
+}
+
+void SandpileView::DrawScene(HDC hdc, RECT const& rcClient)
+{
+    // Handle window size changed.
+    if (!EqualRect(&rcClient, &old_size))
+    {
+        old_size = rcClient;
+        vertex_grid->resize(rcClient);
+    }
+
+    // Set up double buffering.  TODO: don't create new every frame.
+    HDC hdcBuffer = CreateCompatibleDC(hdc);
+    HBITMAP hbmBuffer = CreateCompatibleBitmap(hdc, rcClient.right, rcClient.bottom);
+    HBITMAP hbmOldBuffer = (HBITMAP)SelectObject(hdcBuffer, hbmBuffer);
+
+    // Not needed when the scene background covers whole client area.
+    //FillRect(hdcBuffer, &rcClient, (HBRUSH)GetStockObject(WHITE_BRUSH));
+
+    // Draw scene objects.
+    vertex_grid->draw(hdcBuffer);
+    snake->draw(hdcBuffer);
+
+    // Write buffer to screen.
+    BitBlt(hdc, 0, 0, rcClient.right, rcClient.bottom, hdcBuffer, 0, 0, SRCCOPY);
+
+    SelectObject(hdcBuffer, hbmOldBuffer);
+    DeleteDC(hdcBuffer);
+    DeleteObject(hbmBuffer);
 }

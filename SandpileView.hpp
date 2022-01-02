@@ -19,8 +19,10 @@ private:
 
     static const char* window_class_name;
 
-    static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+    static LRESULT CALLBACK WndProc_static(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
     LRESULT WndProc(UINT msg, WPARAM wParam, LPARAM lParam);
+
+    void DrawScene(HDC hdc, RECT const& rcClient);
 
 public:
     SandpileView(HINSTANCE hInstance);
