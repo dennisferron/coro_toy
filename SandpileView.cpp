@@ -7,8 +7,8 @@ char const* SandpileView::window_class_name = "SandpileView";
 
 SandpileView::SandpileView(HINSTANCE hInstance)
 {
-    Color bg_low = { 0.1, 0.1, 1.0 };  // Blue
-    Color bg_high = { 1.0, 1.0, 0.1 }; // Yellow
+    Color bg_low = { 70.0/256, 40.0/256, 5.0/256 };  // Brown
+    Color bg_high = { 110.0/256, 80.0/256, 6.0/256 }; // Tan
     auto background = std::make_shared<Texture>(bg_low, bg_high);
     vertex_grid = new VertexGrid(50, 40, background);
 

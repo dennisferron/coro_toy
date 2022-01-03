@@ -4,36 +4,74 @@
 Snake::Snake(std::shared_ptr<Texture> texture) :
     texture(texture)
 {
+    double right = scale_cols*scale_spacing*0.6;
+    double bottom = scale_cols*scale_spacing*0.6;
+    splines.push_back(
+        Bezier({0, 0}, {right/2,0}, {right/2,bottom/2}));
+    splines.push_back(
+        Bezier({right/2,bottom/2}, {right/2,bottom},{right,bottom}));
 }
 
 Vector2 Snake::transform(Vector2 in) const
 {
-    double height = scales_height;
-    double y_origin = height/2;
-    double y_centered = in.y - y_origin;
-    double y_scaled = y_centered / (height/2); // +/-1.0
-    constexpr double PI = 3.14159265;
-    double theta = y_scaled * PI * 0.5;
-    double radius = height / PI;  // stretched over half the circumference
-    double y_new = sin(theta) * radius + y_origin;
-
-    double right = scale_cols*scale_spacing*0.6;
-    double bottom = scale_cols*scale_spacing*0.6;
-    Bezier bez({0, 0}, {right*phase,(1-phase)*bottom}, {right,bottom});
-    double s = in.x / scales_width;
-    Vector2 bz_org = bez.pos_at(s);
-    Vector2 bz_ofs = y_new * bez.normal_at(s);
-    Vector2 bz_pos = bz_org + bz_ofs;
+    Vector2 wr = transform_wrap(in);
+    Vector2 bz = transform_bezier(wr);
 
     //return { in.x, in.y+20};
-    //return { in.x, y_new+20};
-    return { bz_pos.x, bz_pos.y };
+    //return { wr.x, wr.y+20};
+    return { bz.x, bz.y };
 
     if (phase < 0.5)
-        return { in.x, lerp(in.y, y_new, 2*phase)};
+    {
+        double t = 2*phase;
+        return {lerp(in.x, wr.x, t), lerp(in.y, wr.y, t)};
+    }
     else
-        return { lerp(in.x, bz_pos.x, 2*(phase-0.5)),
-                 lerp(y_new, bz_pos.y, 2*(phase-0.5)) };
+    {
+        double t = 2*(phase-0.5);
+        return {lerp(wr.x, bz.x, t), lerp(wr.y, bz.y, t)};
+    }
+}
+
+Vector2 Snake::transform_wrap(Vector2 in) const
+{
+    double y_scaled = in.y / (scales_height/2); // +/-1.0
+    constexpr double PI = 3.14159265;
+    double theta = y_scaled * PI * 0.5;
+    double radius = scales_height / PI;  // stretched over half the circumference
+    double y_new = sin(theta) * radius;
+
+    return { in.x, y_new};
+}
+
+Vector2 Snake::transform_tail(Vector2 in) const
+{
+    double s = in.x / scales_width;
+    constexpr double tail_section = 0.2;
+    if (s < tail_section)
+    {
+
+        double y2 = in.y * s * (1.0/tail_section);
+    }
+    else
+    {
+        return in;
+    }
+}
+
+Vector2 Snake::transform_bezier(Vector2 in) const
+{
+    double s = (in.x / scales_width);
+    double s_all = s * splines.size();
+    std::size_t index = static_cast<std::size_t>(s_all);
+    double s_frac = s_all - index;
+
+    Bezier const& bez = splines[index];
+    Vector2 bz_org = bez.pos_at(s_frac);
+    Vector2 bz_ofs = in.y * bez.normal_at(s_frac);
+    Vector2 bz_pos = bz_org + bz_ofs;
+
+    return { bz_pos.x, bz_pos.y };
 }
 
 void Snake::draw(HDC hdc)
@@ -46,7 +84,7 @@ void Snake::draw(HDC hdc)
         should_offset = !should_offset;
         for (int row = 0; row < scale_rows; row++)
         {
-            double y = row * scale_spacing;
+            double y = row * scale_spacing - scales_height/2;
             Color scale_color = texture->color_at(x, y);
             int r = scale_color.red_int();
             int g = scale_color.green_int();
