@@ -138,3 +138,65 @@ void Snake::step_animation(unsigned int delta_ms)
         phase_dir = 1.0;
     }
 }
+
+void Snake::move(Vector2 const& dir)
+{
+    // TODO: munge heading array and update tail_pos.
+
+    reticulate_splines();
+}
+
+void Snake::reticulate_splines()
+{
+    splines.clear();
+
+    /*
+        Initial condition:
+            Start in center of the square
+            All control points in a line
+                0.5 .. 0.75 .. 1.0
+            in the direction of heading[0]
+        This puts p2 at one of the four sides of the square.
+
+        (To make the math simpler we will assume
+        unit squares and convert to pixel coordinates
+        only after computing the control points.)
+    */
+    Vector2 p0 = tail_pos + {0.5, 0.5};
+    Vector2 p1 = p0 + 0.25 * heading[0];
+    Vector2 p2 = p1 + 0.25 * heading[0];
+
+    splines.push_back(square_size*p0, square_size*p1, square_size*p2);
+
+    /*
+        The initial (zeroth) segment starts from the center point
+        of the square at tail_pos and heads to one side of square,
+        but subsequent segments of the snake will traverse whole
+        squares starting from one side and exiting at another.
+     */
+
+    for (std::size_t i = 1; i<heading.size(); i++)
+    {
+        /*
+            First control point, p0, of next segment starts at p2
+            of last segment (obviously), recall this is at middle
+            of one the four sides where we entered a new square.
+
+            Second control point, p1, continues in the direction
+            we entered on. This puts p1 in a position to pull on
+            the outside of the curve when the snake changes direction.
+            (And if snake doesn't change direction, p1 will be in-line.
+            In fact p1 is always in the center of a square regardless.)
+
+            Third control point, p2, arcs towards next heading.  Since
+            p1 is always the center of a square, p2 again reaches one
+            of the walls of a square after traveling distance 0.5 from
+            p1.  Thus setting up initial conditions again for next loop.
+         */
+        p0 = p2;
+        p1 = p0 + 0.5 * heading[i-1];
+        p2 = p1 + 0.5 * heading[i];
+
+        splines.push_back(square_size*p0, square_size*p1, square_size*p2);
+    }
+}

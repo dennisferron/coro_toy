@@ -16,6 +16,10 @@ private:
     double phase = 0.0;
     double phase_dir = 1.0;
 
+    Vector2 tail_pos;
+    std::vector<Vector2> heading;
+    static constexpr double square_size = 50;
+
     static constexpr double scale_spacing = 6.0;
     static constexpr double scale_radius = 0.8*scale_spacing;
     static constexpr int scale_rows = 4;
@@ -29,10 +33,13 @@ private:
     Vector2 transform_bezier(Vector2 in) const;
     Vector2 transform_tail(Vector2 in) const;
 
+    void reticulate_splines();
+
 public:
     Snake(std::shared_ptr<Texture> texture);
     void draw(HDC hdc);
     void step_animation(unsigned int delta_ms);
+    void move(Vector2 const& dir);
 };
 
 
