@@ -42,5 +42,17 @@ struct Vector2
     {
         return { a.x+b.x, a.y+b.y };
     }
+
+    friend Vector2 operator -(Vector2 const& a, Vector2 const& b)
+    {
+        return { a.x-b.x, a.y-b.y };
+    }
+
+    Vector2& operator +=(Vector2 const& b)
+    {
+        x+=b.x;
+        y+=b.y;
+        return *this;
+    }
 };
 

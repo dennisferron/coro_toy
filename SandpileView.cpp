@@ -47,7 +47,7 @@ SandpileView::SandpileView(HINSTANCE hInstance)
         window_class_name,
         "Sandpile View",
         WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, 320, 240,
+        CW_USEDEFAULT, CW_USEDEFAULT, 640, 480,
         NULL,
         NULL,
         hInstance,

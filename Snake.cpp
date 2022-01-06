@@ -10,6 +10,16 @@ Snake::Snake(std::shared_ptr<Texture> texture) :
         Bezier({0, 0}, {right/2,0}, {right/2,bottom/2}));
     splines.push_back(
         Bezier({right/2,bottom/2}, {right/2,bottom},{right,bottom}));
+
+    tail_pos = {1, 2};
+    heading = {
+        {1, 0}, {0,1}, {0,1}, {1, 0}, {0, -1},
+        {0, -1}, {0, -1}, {1, 0}, {1, 0}, {0, 1},
+        {-1, 0}, {0, 1}, {0, 1}, {1, 0}, {1, 0},
+        {0, 1}, {0, 1}, {-1, 0}, {-1, 0}, {0, 1}, {0, 1},
+        {1, 0}, {1, 0},{1, 0},{1, 0}, {1, 0}, {1, 0}
+    };
+    reticulate_splines();
 }
 
 Vector2 Snake::transform(Vector2 in) const
@@ -141,7 +151,9 @@ void Snake::step_animation(unsigned int delta_ms)
 
 void Snake::move(Vector2 const& dir)
 {
-    // TODO: munge heading array and update tail_pos.
+    tail_pos += heading.front();
+    heading.pop_front();
+    heading.push_back(dir);
 
     reticulate_splines();
 }
@@ -152,21 +164,23 @@ void Snake::reticulate_splines()
 
     /*
         Initial condition:
-            Start in center of the square
-            All control points in a line
-                0.5 .. 0.75 .. 1.0
-            in the direction of heading[0]
-        This puts p2 at one of the four sides of the square.
-
-        (To make the math simpler we will assume
-        unit squares and convert to pixel coordinates
-        only after computing the control points.)
+            Start p1 in center of the square (0.5, 0.5)
+            Back-fill p0 by reversing first heading * 0.5
+            Set p2 by adding first heading * 0.5
+        This puts p2 at one of the four sides of the square
+        where the first heading was headed, and points the
+        tail at the opposite end of the square.
     */
-    Vector2 p0 = tail_pos + {0.5, 0.5};
-    Vector2 p1 = p0 + 0.25 * heading[0];
-    Vector2 p2 = p1 + 0.25 * heading[0];
+    Vector2 p1 = tail_pos + Vector2 {0.5, 0.5};
+    Vector2 p0 = p1 - 0.5 * heading[0];
+    Vector2 p2 = p1 + 0.5 * heading[0];
 
-    splines.push_back(square_size*p0, square_size*p1, square_size*p2);
+    /*
+        To make the math simpler we calculate control points
+        using unit squares and convert to pixel coordinates
+        only at the last moment when adding the splines.
+    */
+    splines.push_back({square_size*p0, square_size*p1, square_size*p2});
 
     /*
         The initial (zeroth) segment starts from the center point
@@ -197,6 +211,8 @@ void Snake::reticulate_splines()
         p1 = p0 + 0.5 * heading[i-1];
         p2 = p1 + 0.5 * heading[i];
 
-        splines.push_back(square_size*p0, square_size*p1, square_size*p2);
+        splines.push_back({square_size*p0, square_size*p1, square_size*p2});
     }
+
+    splines.push_back({square_size*p0, square_size*p1, square_size*p2});
 }

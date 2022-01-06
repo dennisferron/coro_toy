@@ -7,6 +7,8 @@
 #include <windows.h>
 
 #include <memory>
+#include <deque>
+#include <vector>
 
 class Snake
 {
@@ -17,7 +19,7 @@ private:
     double phase_dir = 1.0;
 
     Vector2 tail_pos;
-    std::vector<Vector2> heading;
+    std::deque<Vector2> heading;
     static constexpr double square_size = 50;
 
     static constexpr double scale_spacing = 6.0;
