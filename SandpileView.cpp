@@ -2,6 +2,7 @@
 #include <vector>
 #include <array>
 #include "SandpileView.hpp"
+#include "GraphPaper.hpp"
 
 char const* SandpileView::window_class_name = "SandpileView";
 
@@ -174,8 +175,11 @@ void SandpileView::DrawScene(HDC hdc, RECT const& rcClient)
     // Not needed when the scene background covers whole client area.
     //FillRect(hdcBuffer, &rcClient, (HBRUSH)GetStockObject(WHITE_BRUSH));
 
+    GraphPaper graph_paper(rcClient);
+
     // Draw scene objects.
     vertex_grid->draw(hdcBuffer);
+    graph_paper.draw(hdcBuffer);
     snake->draw(hdcBuffer);
 
     // Write buffer to screen.

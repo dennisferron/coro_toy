@@ -12,6 +12,9 @@
 
 class Snake
 {
+public:
+    static constexpr double square_size = 50;
+
 private:
     std::shared_ptr<Texture> texture;
     std::vector<Bezier> splines;
@@ -20,7 +23,6 @@ private:
 
     Vector2 tail_pos;
     std::deque<Vector2> heading;
-    static constexpr double square_size = 50;
 
     static constexpr double scale_spacing = 6.0;
     static constexpr double scale_radius = 0.8*scale_spacing;

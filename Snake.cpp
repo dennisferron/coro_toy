@@ -96,6 +96,10 @@ void Snake::draw(HDC hdc)
         {
             double y = row * scale_spacing - scales_height/2;
             Color scale_color = texture->color_at(x, y);
+
+            if (col >= 97)
+                scale_color = {1.0, 0.0, 0.0};
+
             int r = scale_color.red_int();
             int g = scale_color.green_int();
             int b = scale_color.blue_int();
@@ -172,7 +176,7 @@ void Snake::reticulate_splines()
         tail at the opposite end of the square.
     */
     Vector2 p1 = tail_pos + Vector2 {0.5, 0.5};
-    Vector2 p0 = p1 - 0.5 * heading[0];
+    Vector2 p0 = p1 - 0.4 * heading[0];  // Pull in tail just a bit
     Vector2 p2 = p1 + 0.5 * heading[0];
 
     /*
@@ -213,6 +217,4 @@ void Snake::reticulate_splines()
 
         splines.push_back({square_size*p0, square_size*p1, square_size*p2});
     }
-
-    splines.push_back({square_size*p0, square_size*p1, square_size*p2});
 }
