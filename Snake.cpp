@@ -16,8 +16,9 @@ Snake::Snake(std::shared_ptr<Texture> texture) :
         {1, 0}, {0,1}, {0,1}, {1, 0}, {0, -1},
         {0, -1}, {0, -1}, {1, 0}, {1, 0}, {0, 1},
         {-1, 0}, {0, 1}, {0, 1}, {1, 0}, {1, 0},
-        {0, 1}, {0, 1}, {-1, 0}, {-1, 0}, {0, 1}, {0, 1},
-        {1, 0}, {1, 0},{1, 0},{1, 0}, {1, 0}, {1, 0}
+        {0, 1}, {0, 1}, {-1, 0},
+        //{-1, 0}, {0, 1}, {0, 1},
+        //{1, 0}, {1, 0},{1, 0},{1, 0}, {1, 0}, {1, 0}
     };
     reticulate_splines();
 }
@@ -72,7 +73,7 @@ Vector2 Snake::transform_tail(Vector2 in) const
 Vector2 Snake::transform_bezier(Vector2 in) const
 {
     double s = (in.x / scales_width);
-    double s_all = s * splines.size();
+    double s_all = s * (splines.size()-1) + phase;
     std::size_t index = static_cast<std::size_t>(s_all);
     double s_frac = s_all - index;
 
@@ -138,13 +139,25 @@ void Snake::draw(HDC hdc)
 
 void Snake::step_animation(unsigned int delta_ms)
 {
-    constexpr double period_seconds = 4.0;
+    constexpr double period_seconds = 2.0;
     double delta_phase = (delta_ms / 1000.0) / period_seconds;
     phase += phase_dir * delta_phase;
     if (phase_dir > 0.0 && phase > 1.0)
     {
-        phase = 1.0;
-        phase_dir = -1.0;
+        //phase = 1.0;
+        //phase_dir = -1.0;
+
+        switch (rand() % 7)
+        {
+            case 0: move({ 1,  0}); break;
+            case 1: move({-1,  0}); break;
+            case 2: move({ 0,  1}); break;
+            case 3: move({ 0, -1}); break;
+            case 4: move({ 1,  0}); break;
+            case 5: move({ 1,  0}); break;
+            case 6: move({ 0,  1}); break;
+        }
+        phase = 0;
     }
     else if (phase_dir < 0.0 && phase < 0.0)
     {
@@ -217,4 +230,11 @@ void Snake::reticulate_splines()
 
         splines.push_back({square_size*p0, square_size*p1, square_size*p2});
     }
+
+    // If we didn't generate the head in the last
+    p0 = p2;
+    p1 = p0 + 0.5 * *heading.rbegin();
+    p2 = p1 + 0.5 * *heading.rbegin();
+
+    splines.push_back({square_size*p0, square_size*p1, square_size*p2});
 }

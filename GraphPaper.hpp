@@ -5,7 +5,7 @@
 class GraphPaper
 {
 public:
-    static constexpr double square_size = 50;
+    static constexpr double square_size = 40;
 
 private:
     RECT rect;

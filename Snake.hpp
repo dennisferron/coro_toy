@@ -13,7 +13,7 @@
 class Snake
 {
 public:
-    static constexpr double square_size = 50;
+    static constexpr double square_size = 40;
 
 private:
     std::shared_ptr<Texture> texture;
