@@ -10,12 +10,15 @@
 #include <deque>
 #include <vector>
 
+class SnakeBoard;
+
 class Snake
 {
 public:
     static constexpr double square_size = 40;
 
 private:
+    SnakeBoard* board;
     std::shared_ptr<Texture> texture;
     std::vector<Bezier> splines;
     double phase = 0.0;
@@ -40,8 +43,11 @@ private:
 
     void reticulate_splines();
 
+    Vector2 get_board_square(std::size_t index) const;
+    Vector2 get_head_square(Vector2 dir) const;
+
 public:
-    Snake(std::shared_ptr<Texture> texture);
+    Snake(SnakeBoard* board, std::shared_ptr<Texture> texture, Vector2 pos);
     void draw(HDC hdc);
     void step_animation(unsigned int delta_ms);
     void move(Vector2 const& dir);

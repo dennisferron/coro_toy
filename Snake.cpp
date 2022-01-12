@@ -1,11 +1,12 @@
 #include "Snake.hpp"
 #include "Bezier.hpp"
+#include "SnakeBoard.hpp"
 
 #include <numbers>
 #include <random>
 
-Snake::Snake(std::shared_ptr<Texture> texture) :
-    texture(texture)
+Snake::Snake(SnakeBoard* board, std::shared_ptr<Texture> texture, Vector2 pos) :
+    board(board), texture(texture), tail_pos(pos)
 {
     double right = scale_cols*scale_spacing*0.6;
     double bottom = scale_cols*scale_spacing*0.6;
@@ -14,15 +15,11 @@ Snake::Snake(std::shared_ptr<Texture> texture) :
     splines.push_back(
         Bezier({right/2,bottom/2}, {right/2,bottom},{right,bottom}));
 
-    tail_pos = {1, 2};
-    heading = {
-        {1, 0}, {0,1}, {0,1}, {1, 0}, {0, -1},
-        {0, -1}, {0, -1}, {1, 0}, {1, 0}, {0, 1},
-        {-1, 0}, {0, 1}, {0, 1}, {1, 0}, {1, 0},
-        {0, 1}, {0, 1}, {-1, 0},
-        //{-1, 0}, {0, 1}, {0, 1},
-        //{1, 0}, {1, 0},{1, 0},{1, 0}, {1, 0}, {1, 0}
-    };
+    for (int i=0; i<18; i++)
+    {
+        heading.push_back({0,0});
+    }
+
     reticulate_splines();
 }
 
@@ -142,40 +139,48 @@ void Snake::draw(HDC hdc)
 
 void Snake::step_animation(unsigned int delta_ms)
 {
-    static std::default_random_engine rnd_eng {};
-    static std::uniform_int_distribution<> get_dir {0, 3};
-    static std::uniform_real_distribution<> get_ang
-    {
-        -std::numbers::pi,
-        std::numbers::pi
-    };
-
     constexpr double period_seconds = 2.0;
     double delta_phase = (delta_ms / 1000.0) / period_seconds;
     phase += phase_dir * delta_phase;
     if (phase_dir > 0.0 && phase > 1.0)
     {
-        //phase = 1.0;
-        //phase_dir = -1.0;
+        phase = 1.0;
+        phase_dir = -1.0;
 
-        Vector2 v;
+        static std::default_random_engine rnd_eng {};
+        static std::uniform_int_distribution<> get_dir {0, 7};
 
-        switch (get_dir(rnd_eng))
+        for (int tries = 0; tries < 6; tries++)
         {
-            case 0: v = { 1,  0}; break;
-            case 1: v = {-1,  0}; break;
-            case 2: v = { 0,  1}; break;
-            case 3: v = { 0, -1}; break;
+            Vector2 v;
+            switch (get_dir(rnd_eng))
+            {
+                case 0:
+                    v = {1, 0};
+                    break;
+                case 1:
+                    v = {-1, 0};
+                    break;
+                case 2:
+                    v = {0, 1};
+                    break;
+                case 3:
+                    v = {0, -1};
+                    break;
+                default:
+                    v = *(heading.end()-1);
+            }
+
+            Vector2 next_cell = get_head_square(v);
+            if (board->request_cell(next_cell))
+            {
+                board->return_cell(get_board_square(0));
+                move(v);
+                phase = 0.0;
+                phase_dir = 1.0;
+                break;
+            }
         }
-
-//        // The angles do not have to be 90 degrees.
-//        double a = get_ang(rnd_eng);
-//        v.x = cos(a);
-//        v.y = sin(a);
-
-        move(v);
-
-        phase = 0;
     }
     else if (phase_dir < 0.0 && phase < 0.0)
     {
@@ -250,10 +255,25 @@ void Snake::reticulate_splines()
         splines.push_back({square_size*p0, square_size*p1, square_size*p2});
     }
 
-    // If we didn't generate the head in the last
+    // Project head of snake into the last square.
     p0 = p2;
     p1 = p0 + 0.5 * *heading.rbegin();
     p2 = p1 + 0.5 * *heading.rbegin();
 
     splines.push_back({square_size*p0, square_size*p1, square_size*p2});
+}
+
+Vector2 Snake::get_board_square(std::size_t index) const
+{
+    Vector2 pos = tail_pos;
+
+    for (std::size_t i=0; i<index && i<heading.size(); i++)
+        pos += heading[i];
+
+    return pos;
+}
+
+Vector2 Snake::get_head_square(Vector2 dir) const
+{
+    return get_board_square(heading.size()) + dir;
 }
