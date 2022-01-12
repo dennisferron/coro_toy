@@ -2,8 +2,11 @@
 
 #include "VertexGrid.hpp"
 #include "Snake.hpp"
+#include "SnakeBoard.hpp"
 
 #include <windows.h>
+
+#include <vector>
 
 class SandpileView
 {
@@ -15,7 +18,7 @@ private:
     unsigned int timer_ms = 50;
 
     VertexGrid* vertex_grid = nullptr;
-    Snake* snake = nullptr;
+    SnakeBoard snakes;
 
     static const char* window_class_name;
 
@@ -25,6 +28,6 @@ private:
     void DrawScene(HDC hdc, RECT const& rcClient);
 
 public:
-    SandpileView(HINSTANCE hInstance);
+    explicit SandpileView(HINSTANCE hInstance);
     void show_window(int nCmdShow);
 };

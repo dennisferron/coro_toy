@@ -1,6 +1,9 @@
 #include "Snake.hpp"
 #include "Bezier.hpp"
 
+#include <numbers>
+#include <random>
+
 Snake::Snake(std::shared_ptr<Texture> texture) :
     texture(texture)
 {
@@ -139,6 +142,14 @@ void Snake::draw(HDC hdc)
 
 void Snake::step_animation(unsigned int delta_ms)
 {
+    static std::default_random_engine rnd_eng {};
+    static std::uniform_int_distribution<> get_dir {0, 3};
+    static std::uniform_real_distribution<> get_ang
+    {
+        -std::numbers::pi,
+        std::numbers::pi
+    };
+
     constexpr double period_seconds = 2.0;
     double delta_phase = (delta_ms / 1000.0) / period_seconds;
     phase += phase_dir * delta_phase;
@@ -147,16 +158,23 @@ void Snake::step_animation(unsigned int delta_ms)
         //phase = 1.0;
         //phase_dir = -1.0;
 
-        switch (rand() % 7)
+        Vector2 v;
+
+        switch (get_dir(rnd_eng))
         {
-            case 0: move({ 1,  0}); break;
-            case 1: move({-1,  0}); break;
-            case 2: move({ 0,  1}); break;
-            case 3: move({ 0, -1}); break;
-            case 4: move({ 1,  0}); break;
-            case 5: move({ 1,  0}); break;
-            case 6: move({ 0,  1}); break;
+            case 0: v = { 1,  0}; break;
+            case 1: v = {-1,  0}; break;
+            case 2: v = { 0,  1}; break;
+            case 3: v = { 0, -1}; break;
         }
+
+//        // The angles do not have to be 90 degrees.
+//        double a = get_ang(rnd_eng);
+//        v.x = cos(a);
+//        v.y = sin(a);
+
+        move(v);
+
         phase = 0;
     }
     else if (phase_dir < 0.0 && phase < 0.0)
@@ -168,6 +186,7 @@ void Snake::step_animation(unsigned int delta_ms)
 
 void Snake::move(Vector2 const& dir)
 {
+    old_tail_hdg = heading.front();
     tail_pos += heading.front();
     heading.pop_front();
     heading.push_back(dir);
@@ -182,14 +201,14 @@ void Snake::reticulate_splines()
     /*
         Initial condition:
             Start p1 in center of the square (0.5, 0.5)
-            Back-fill p0 by reversing first heading * 0.5
-            Set p2 by adding first heading * 0.5
+            Back-fill p0 by subtracting half of old heading
+            Set p2 by adding half of first heading to p1
         This puts p2 at one of the four sides of the square
         where the first heading was headed, and points the
         tail at the opposite end of the square.
     */
     Vector2 p1 = tail_pos + Vector2 {0.5, 0.5};
-    Vector2 p0 = p1 - 0.4 * heading[0];  // Pull in tail just a bit
+    Vector2 p0 = p1 - 0.5 * old_tail_hdg;
     Vector2 p2 = p1 + 0.5 * heading[0];
 
     /*

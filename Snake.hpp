@@ -23,6 +23,7 @@ private:
 
     Vector2 tail_pos;
     std::deque<Vector2> heading;
+    Vector2 old_tail_hdg;
 
     static constexpr double scale_spacing = 6.0;
     static constexpr double scale_radius = 0.8*scale_spacing;

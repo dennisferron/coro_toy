@@ -6,6 +6,9 @@ struct Color
     double G;
     double B;
 
+    Color(double R, double G, double B) : R(R), G(G), B(B) {}
+    Color(int R, int G, int B) : R(R/255.0), G(G/255.0), B(B/255.0) {}
+
     Color fade_to(Color const& x, double t)
     {
         auto lerp = [t](double a, double b)

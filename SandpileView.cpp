@@ -13,13 +13,6 @@ SandpileView::SandpileView(HINSTANCE hInstance)
     auto background = std::make_shared<Texture>(bg_low, bg_high);
     vertex_grid = new VertexGrid(50, 40, background);
 
-    Color sn_low = { 0.5, 0.1, 0.1 };
-    Color sn_high = { 0.0, 0.8, 0.0 };
-    auto sn_texture = std::make_shared<Texture>(sn_low, sn_high);
-    snake = new Snake(sn_texture);
-    //snake->resize(RECT { 10, 20, 200, 50 });
-    //snake->shape();
-
     // TODO: Refactor window class registration into a singleton event.
     WNDCLASSEX wc;
 
@@ -138,7 +131,8 @@ LRESULT SandpileView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
 
 			GetClientRect(hwnd, &rcClient);
 
-            snake->step_animation(timer_ms);
+            snakes.step_animation(timer_ms);
+
             DrawScene(hdc, rcClient);
 
 			ReleaseDC(hwnd, hdc);
@@ -180,7 +174,8 @@ void SandpileView::DrawScene(HDC hdc, RECT const& rcClient)
     // Draw scene objects.
     vertex_grid->draw(hdcBuffer);
     graph_paper.draw(hdcBuffer);
-    snake->draw(hdcBuffer);
+
+    snakes.draw(hdcBuffer);
 
     // Write buffer to screen.
     BitBlt(hdc, 0, 0, rcClient.right, rcClient.bottom, hdcBuffer, 0, 0, SRCCOPY);
