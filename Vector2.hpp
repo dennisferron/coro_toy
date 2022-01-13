@@ -28,6 +28,16 @@ struct Vector2
         return { x/d, y/d };
     }
 
+    Vector2 operator-() const
+    {
+        return { -x, -y };
+    }
+
+    friend bool operator ==(Vector2 const& a, Vector2 const& b)
+    {
+        return a.x==b.x && a.y==b.y;
+    }
+
     friend Vector2 operator *(double const& a, Vector2 const& b)
     {
         return { a*b.x, a*b.y };

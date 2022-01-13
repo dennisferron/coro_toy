@@ -19,6 +19,7 @@ public:
 
 private:
     SnakeBoard* board;
+    int id;
     std::shared_ptr<Texture> texture;
     std::vector<Bezier> splines;
     double phase = 0.0;
@@ -47,7 +48,7 @@ private:
     Vector2 get_head_square(Vector2 dir) const;
 
 public:
-    Snake(SnakeBoard* board, std::shared_ptr<Texture> texture, Vector2 pos);
+    Snake(SnakeBoard* board, int id, std::shared_ptr<Texture> texture, Vector2 pos);
     void draw(HDC hdc);
     void step_animation(unsigned int delta_ms);
     void move(Vector2 const& dir);

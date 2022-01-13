@@ -19,8 +19,8 @@ public:
     SnakeBoard();
     void draw(HDC hdc);
     void step_animation(unsigned int delta_ms);
-    bool request_cell(Vector2 pos);
-    void return_cell(Vector2 pos);
+    bool request_cell(Vector2 pos, int id);
+    void return_cell(Vector2 pos, int id);
 };
 
 

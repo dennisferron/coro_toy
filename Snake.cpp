@@ -5,8 +5,8 @@
 #include <numbers>
 #include <random>
 
-Snake::Snake(SnakeBoard* board, std::shared_ptr<Texture> texture, Vector2 pos) :
-    board(board), texture(texture), tail_pos(pos)
+Snake::Snake(SnakeBoard* board, int id, std::shared_ptr<Texture> texture, Vector2 pos) :
+    board(board), id(id), texture(texture), tail_pos(pos)
 {
     double right = scale_cols*scale_spacing*0.6;
     double bottom = scale_cols*scale_spacing*0.6;
@@ -139,7 +139,7 @@ void Snake::draw(HDC hdc)
 
 void Snake::step_animation(unsigned int delta_ms)
 {
-    constexpr double period_seconds = 2.0;
+    constexpr double period_seconds = 1.0;
     double delta_phase = (delta_ms / 1000.0) / period_seconds;
     phase += phase_dir * delta_phase;
     if (phase_dir > 0.0 && phase > 1.0)
@@ -150,7 +150,7 @@ void Snake::step_animation(unsigned int delta_ms)
         static std::default_random_engine rnd_eng {};
         static std::uniform_int_distribution<> get_dir {0, 7};
 
-        for (int tries = 0; tries < 6; tries++)
+        for (int tries = 0; tries < 20; tries++)
         {
             Vector2 v;
             switch (get_dir(rnd_eng))
@@ -171,10 +171,13 @@ void Snake::step_animation(unsigned int delta_ms)
                     v = *(heading.end()-1);
             }
 
+            if (v == -(*heading.rbegin()))
+                continue;
+
             Vector2 next_cell = get_head_square(v);
-            if (board->request_cell(next_cell))
+            if (board->request_cell(next_cell, id))
             {
-                board->return_cell(get_board_square(0));
+                board->return_cell(get_board_square(0), id);
                 move(v);
                 phase = 0.0;
                 phase_dir = 1.0;
