@@ -57,17 +57,18 @@ Vector2 Snake::transform_wrap(Vector2 in) const
 
 Vector2 Snake::transform_tail(Vector2 in) const
 {
-    double s = in.x / scales_width;
-    constexpr double tail_section = 0.2;
-    if (s < tail_section)
-    {
-
-        double y2 = in.y * s * (1.0/tail_section);
-    }
-    else
-    {
-        return in;
-    }
+    return in;
+//    double s = in.x / scales_width;
+//    constexpr double tail_section = 0.2;
+//    if (s < tail_section)
+//    {
+//
+//        double y2 = in.y * s * (1.0/tail_section);
+//    }
+//    else
+//    {
+//        return in;
+//    }
 }
 
 Vector2 Snake::transform_bezier(Vector2 in) const
