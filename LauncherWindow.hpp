@@ -1,12 +1,16 @@
 #pragma once
 
+#include "SandpileView.hpp"
+
 #include <windows.h>
 
+#include <memory>
 
 class LauncherWindow
 {
 private:
     HINSTANCE hInstance;
+    std::unique_ptr<SandpileView> snakes_demo;
 
     static const char* window_class_name;
 

@@ -29,5 +29,8 @@ private:
 
 public:
     explicit SandpileView(HINSTANCE hInstance);
-    void show_window(int nCmdShow);
+    static void register_window_class(HINSTANCE hInstance);
+    void show_window(int nCmdShow = SW_SHOWNORMAL);
+    bool is_open() const;
+    void set_foreground();
 };

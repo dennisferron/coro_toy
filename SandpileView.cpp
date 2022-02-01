@@ -8,12 +8,30 @@ char const* SandpileView::window_class_name = "SandpileView";
 
 SandpileView::SandpileView(HINSTANCE hInstance)
 {
-    Color bg_low = { 70.0/256, 40.0/256, 5.0/256 };  // Brown
-    Color bg_high = { 110.0/256, 80.0/256, 6.0/256 }; // Tan
+    Color bg_low = {70.0 / 256, 40.0 / 256, 5.0 / 256};  // Brown
+    Color bg_high = {110.0 / 256, 80.0 / 256, 6.0 / 256}; // Tan
     auto background = std::make_shared<Texture>(bg_low, bg_high);
     vertex_grid = new VertexGrid(50, 40, background);
 
-    // TODO: Refactor window class registration into a singleton event.
+    if (!CreateWindowEx(
+            WS_EX_CLIENTEDGE,
+            window_class_name,
+            "Sandpile View",
+            WS_OVERLAPPEDWINDOW,
+            CW_USEDEFAULT, CW_USEDEFAULT, 640, 480,
+            NULL,
+            NULL,
+            hInstance,
+            this))
+    {
+        MessageBox(NULL, "SandpileView window creation failed!", "Error!",
+                   MB_ICONEXCLAMATION | MB_OK);
+        throw std::runtime_error("SandpileView window registration failed.");
+    }
+}
+
+void SandpileView::register_window_class(HINSTANCE hInstance)
+{
     WNDCLASSEX wc;
 
     wc.cbSize = sizeof(WNDCLASSEX);
@@ -35,25 +53,6 @@ SandpileView::SandpileView(HINSTANCE hInstance)
                    MB_ICONEXCLAMATION | MB_OK);
         throw std::runtime_error("SandpileView window class registration failed.");
     }
-
-    if (!CreateWindowEx(
-        WS_EX_CLIENTEDGE,
-        window_class_name,
-        "Sandpile View",
-        WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, 640, 480,
-        NULL,
-        NULL,
-        hInstance,
-        this))
-    {
-        MessageBox(NULL, "SandpileView window creation failed!", "Error!",
-                   MB_ICONEXCLAMATION | MB_OK);
-        throw std::runtime_error("SandpileView window registration failed.");
-    }
-
-    // This is handled in WM_CREATE, instead.
-    //SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 }
 
 void SandpileView::show_window(int nCmdShow)
@@ -140,16 +139,24 @@ LRESULT SandpileView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
 		break;
 		case WM_DESTROY:
 			KillTimer(hwnd, timer_id);
-
-			//DeleteObject(g_hbmBall);
-			//DeleteObject(g_hbmMask);
-
-			PostQuitMessage(0);
 		break;
+        case WM_NCDESTROY:
+            hwnd = NULL;
+            break;
 		default:
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 	}
 	return 0;
+}
+
+bool SandpileView::is_open() const
+{
+    return hwnd != NULL;
+}
+
+void SandpileView::set_foreground()
+{
+    ::SetForegroundWindow(hwnd);
 }
 
 void SandpileView::DrawScene(HDC hdc, RECT const& rcClient)
