@@ -1,13 +1,11 @@
 #include "LauncherWindow.hpp"
-#include "SandpileView.hpp"
+#include "SnakesDemo.hpp"
 
 #include "resource.h"
 
 #include <stdexcept>
 #include <vector>
 #include <array>
-
-char const* LauncherWindow::window_class_name = "LauncherWindow";
 
 LauncherWindow::LauncherWindow(HINSTANCE hInstance) :
     hInstance(hInstance)
@@ -57,7 +55,18 @@ INT_PTR LauncherWindow::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
             switch(LOWORD(wParam))
             {
                 case IDC_ADVENTURE:
+                {
+//                    if (adventure_window && adventure_window->is_open())
+//                    {
+//                        adventure_window->set_foreground();
+//                    }
+//                    else
+//                    {
+//                        snakes_demo.reset(new SnakesDemo(hInstance));
+//                        snakes_demo->show_window();
+//                    }
                     break;
+                }
                 case IDC_SNAKES:
                 {
                     if (snakes_demo && snakes_demo->is_open())
@@ -66,7 +75,8 @@ INT_PTR LauncherWindow::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
                     }
                     else
                     {
-                        snakes_demo.reset(new SandpileView(hInstance));
+                        snakes_demo = SnakesDemo::create(hInstance);
+                        int x2 = snakes_demo.use_count();
                         snakes_demo->show_window();
                     }
                     break;

@@ -4,14 +4,13 @@
 #include "Snake.hpp"
 #include "SnakeBoard.hpp"
 
-#include <windows.h>
+#include "Window.hpp"
 
 #include <vector>
 
-class SandpileView
+class SnakesDemo : public Window
 {
 private:
-    HWND hwnd = 0;
     RECT old_size = {};
 
     int timer_id = 1; // TODO: Pass per-instance?
@@ -22,15 +21,15 @@ private:
 
     static const char* window_class_name;
 
-    static LRESULT CALLBACK WndProc_static(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-    LRESULT WndProc(UINT msg, WPARAM wParam, LPARAM lParam);
-
     void DrawScene(HDC hdc, RECT const& rcClient);
 
+protected:
+    LRESULT WndProc(UINT msg, WPARAM wParam, LPARAM lParam) override;
+
+    void create_window(HINSTANCE hInstance);
+
 public:
-    explicit SandpileView(HINSTANCE hInstance);
+    explicit SnakesDemo();
     static void register_window_class(HINSTANCE hInstance);
-    void show_window(int nCmdShow = SW_SHOWNORMAL);
-    bool is_open() const;
-    void set_foreground();
+    static std::shared_ptr<SnakesDemo> create(HINSTANCE hInstance);
 };

@@ -1,18 +1,28 @@
 #include <stdexcept>
 #include <vector>
 #include <array>
-#include "SandpileView.hpp"
+#include "SnakesDemo.hpp"
 #include "GraphPaper.hpp"
 
-char const* SandpileView::window_class_name = "SandpileView";
+char const* SnakesDemo::window_class_name = "SnakesDemo";
 
-SandpileView::SandpileView(HINSTANCE hInstance)
+std::shared_ptr<SnakesDemo> SnakesDemo::create(HINSTANCE hInstance)
+{
+    auto result = std::make_shared<SnakesDemo>();
+    result->create_window(hInstance);
+    return result;
+}
+
+SnakesDemo::SnakesDemo()
 {
     Color bg_low = {70.0 / 256, 40.0 / 256, 5.0 / 256};  // Brown
     Color bg_high = {110.0 / 256, 80.0 / 256, 6.0 / 256}; // Tan
     auto background = std::make_shared<Texture>(bg_low, bg_high);
     vertex_grid = new VertexGrid(50, 40, background);
+}
 
+void SnakesDemo::create_window(HINSTANCE hInstance)
+{
     if (!CreateWindowEx(
             WS_EX_CLIENTEDGE,
             window_class_name,
@@ -24,19 +34,19 @@ SandpileView::SandpileView(HINSTANCE hInstance)
             hInstance,
             this))
     {
-        MessageBox(NULL, "SandpileView window creation failed!", "Error!",
+        MessageBox(NULL, "SnakesDemo window creation failed!", "Error!",
                    MB_ICONEXCLAMATION | MB_OK);
-        throw std::runtime_error("SandpileView window registration failed.");
+        throw std::runtime_error("SnakesDemo window registration failed.");
     }
 }
 
-void SandpileView::register_window_class(HINSTANCE hInstance)
+void SnakesDemo::register_window_class(HINSTANCE hInstance)
 {
     WNDCLASSEX wc;
 
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.style = 0;
-    wc.lpfnWndProc = SandpileView::WndProc_static;
+    wc.lpfnWndProc = Window::WndProc_static;
     wc.cbClsExtra = 0;
     wc.cbWndExtra = 0;
     wc.hInstance = hInstance;
@@ -49,52 +59,14 @@ void SandpileView::register_window_class(HINSTANCE hInstance)
 
     if (!RegisterClassEx(&wc))
     {
-        MessageBox(NULL, "SandpileView window class registration failed!", "Error!",
+        MessageBox(NULL, "SnakesDemo window class registration failed!", "Error!",
                    MB_ICONEXCLAMATION | MB_OK);
-        throw std::runtime_error("SandpileView window class registration failed.");
-    }
-}
-
-void SandpileView::show_window(int nCmdShow)
-{
-    ShowWindow(hwnd, nCmdShow);
-    UpdateWindow(hwnd);
-}
-
-LRESULT CALLBACK SandpileView::WndProc_static(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-    switch (msg)
-    {
-        case WM_CREATE:
-        {
-            auto create_struct = reinterpret_cast<CREATESTRUCT*>(lParam);
-            void* user_data = create_struct->lpCreateParams;
-            SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(user_data));
-            auto view_obj = reinterpret_cast<SandpileView*>(user_data);
-            view_obj->hwnd = hwnd;
-            return view_obj->WndProc(msg, wParam, lParam);
-        }
-        default:
-        {
-            LONG_PTR user_data = GetWindowLongPtr(hwnd, GWLP_USERDATA);
-
-            // Messages like WM_GETMINMAXINFO may come in before
-            // we have had a chance to set the user data.
-            if (user_data)
-            {
-                auto view_obj = reinterpret_cast<SandpileView*>(user_data);
-                return view_obj->WndProc(msg, wParam, lParam);
-            }
-            else
-            {
-                return DefWindowProc(hwnd, msg, wParam, lParam);
-            }
-        }
+        throw std::runtime_error("SnakesDemo window class registration failed.");
     }
 }
 
 
-LRESULT SandpileView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT SnakesDemo::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch(msg)
 	{
@@ -104,9 +76,6 @@ LRESULT SandpileView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
 				MessageBox(hwnd, "Could not SetTimer()!", "Error", MB_OK | MB_ICONEXCLAMATION);
             break;
 		}
-		case WM_CLOSE:
-			DestroyWindow(hwnd);
-    		break;
         case WM_SIZE:
             InvalidateRect(hwnd, NULL, TRUE);
             break;
@@ -137,29 +106,19 @@ LRESULT SandpileView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
 			ReleaseDC(hwnd, hdc);
 		}
 		break;
+        case WM_CLOSE:
+            DestroyWindow(hwnd);
+            break;
 		case WM_DESTROY:
 			KillTimer(hwnd, timer_id);
 		break;
-        case WM_NCDESTROY:
-            hwnd = NULL;
-            break;
 		default:
-			return DefWindowProc(hwnd, msg, wParam, lParam);
+			return Window::WndProc(msg, wParam, lParam);
 	}
 	return 0;
 }
 
-bool SandpileView::is_open() const
-{
-    return hwnd != NULL;
-}
-
-void SandpileView::set_foreground()
-{
-    ::SetForegroundWindow(hwnd);
-}
-
-void SandpileView::DrawScene(HDC hdc, RECT const& rcClient)
+void SnakesDemo::DrawScene(HDC hdc, RECT const& rcClient)
 {
     // Handle window size changed.
     if (!EqualRect(&rcClient, &old_size))
