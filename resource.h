@@ -1,6 +1,7 @@
 
 #define IDC_STATIC -1
 #define IDD_MAIN                        101
+#define IDD_ADVENTURE                        102
 //#define IDC_TEXT                        1000
 //#define IDC_NUMBER                      1001
 //#define IDC_LIST                        1002

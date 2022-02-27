@@ -2,40 +2,40 @@
 
 std::unordered_map<HWND, std::shared_ptr<Window>> Window::instances;
 
-LRESULT CALLBACK Window::WndProc_static(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+Window::Window(HINSTANCE hInstance) :
+    hInstance(hInstance)
 {
-    if (msg == WM_NCCREATE)
-    {
-        auto create_struct = reinterpret_cast<CREATESTRUCT*>(lParam);
-        auto window = reinterpret_cast<Window*>(create_struct->lpCreateParams);
-        instances[hwnd] = window->shared_from_this();
-        int x = instances[hwnd].use_count();
-        window->hwnd = hwnd;
-    }
-
-    auto window_iter = instances.find(hwnd);
-
-    if (window_iter == instances.end())
-        return DefWindowProc(hwnd, msg, wParam, lParam);
-    else
-    {
-        Window& window = *(window_iter->second);
-        LRESULT result = window.WndProc(msg, wParam, lParam);
-
-        if (msg == WM_NCDESTROY)
-        {
-            instances.erase(window_iter);
-            window.hwnd = NULL;
-        }
-
-        return result;
-    }
 }
 
-
-LRESULT Window::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
+Window::~Window()
 {
-    return DefWindowProc(hwnd, msg, wParam, lParam);
+}
+
+void Window::register_window(HWND hwnd, Window* window)
+{
+    instances[hwnd] = window->shared_from_this();
+    window->hwnd = hwnd;
+}
+
+std::shared_ptr<Window> Window::lookup_window(HWND hwnd)
+{
+    auto iter = instances.find(hwnd);
+
+    if (iter == instances.end())
+        return nullptr;
+    else
+        return iter->second;
+}
+
+void Window::unregister_window(HWND hwnd)
+{
+    auto iter = instances.find(hwnd);
+
+    if (iter != instances.end())
+    {
+        iter->second->hwnd = NULL;
+        instances.erase(iter);
+    }
 }
 
 void Window::show_window(int nCmdShow)
@@ -52,9 +52,4 @@ bool Window::is_open() const
 void Window::set_foreground()
 {
     ::SetForegroundWindow(hwnd);
-}
-
-std::shared_ptr<Window> Window::get_ptr()
-{
-    return shared_from_this();
 }

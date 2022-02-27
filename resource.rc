@@ -22,5 +22,15 @@ BEGIN
     PUSHBUTTON      "&TBD",IDC_TBD,240,30,100,100
 END
 
+IDD_ADVENTURE DIALOG DISCARDABLE  0, 0, 350, 156
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Choose Your Own (Coroutine) Adventure"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CTEXT           "Click a Demo to Launch", IDC_STATIC, 100, 10, 100, 16
+    PUSHBUTTON      "&Choose Your Own Adventure",IDC_ADVENTURE,10,30,100,100
+    PUSHBUTTON      "&Snakes",IDC_SNAKES,125,30,100,100
+    PUSHBUTTON      "&TBD",IDC_TBD,240,30,100,100
+END
 
 #endif    // English (U.S.) resources

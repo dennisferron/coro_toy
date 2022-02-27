@@ -4,11 +4,11 @@
 #include "Snake.hpp"
 #include "SnakeBoard.hpp"
 
-#include "Window.hpp"
+#include "PlainWindow.hpp"
 
 #include <vector>
 
-class SnakesDemo : public Window
+class SnakesDemo : public PlainWindow
 {
 private:
     RECT old_size = {};
@@ -26,10 +26,9 @@ private:
 protected:
     LRESULT WndProc(UINT msg, WPARAM wParam, LPARAM lParam) override;
 
-    void create_window(HINSTANCE hInstance);
-
 public:
-    explicit SnakesDemo();
     static void register_window_class(HINSTANCE hInstance);
-    static std::shared_ptr<SnakesDemo> create(HINSTANCE hInstance);
+
+    explicit SnakesDemo(HINSTANCE hInstance);
+    void create_window();
 };

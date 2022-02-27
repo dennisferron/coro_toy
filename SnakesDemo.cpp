@@ -6,14 +6,8 @@
 
 char const* SnakesDemo::window_class_name = "SnakesDemo";
 
-std::shared_ptr<SnakesDemo> SnakesDemo::create(HINSTANCE hInstance)
-{
-    auto result = std::make_shared<SnakesDemo>();
-    result->create_window(hInstance);
-    return result;
-}
-
-SnakesDemo::SnakesDemo()
+SnakesDemo::SnakesDemo(HINSTANCE hInstance) :
+    PlainWindow(hInstance)
 {
     Color bg_low = {70.0 / 256, 40.0 / 256, 5.0 / 256};  // Brown
     Color bg_high = {110.0 / 256, 80.0 / 256, 6.0 / 256}; // Tan
@@ -21,7 +15,7 @@ SnakesDemo::SnakesDemo()
     vertex_grid = new VertexGrid(50, 40, background);
 }
 
-void SnakesDemo::create_window(HINSTANCE hInstance)
+void SnakesDemo::create_window()
 {
     if (!CreateWindowEx(
             WS_EX_CLIENTEDGE,
@@ -46,7 +40,7 @@ void SnakesDemo::register_window_class(HINSTANCE hInstance)
 
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.style = 0;
-    wc.lpfnWndProc = Window::WndProc_static;
+    wc.lpfnWndProc = PlainWindow::WndProc_static;
     wc.cbClsExtra = 0;
     wc.cbWndExtra = 0;
     wc.hInstance = hInstance;
@@ -113,7 +107,7 @@ LRESULT SnakesDemo::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
 			KillTimer(hwnd, timer_id);
 		break;
 		default:
-			return Window::WndProc(msg, wParam, lParam);
+			return PlainWindow::WndProc(msg, wParam, lParam);
 	}
 	return 0;
 }

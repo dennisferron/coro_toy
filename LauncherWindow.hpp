@@ -3,21 +3,17 @@
 #include "SnakesDemo.hpp"
 #include "AdventureWindow.hpp"
 
-#include <windows.h>
-
 #include <memory>
 
-class LauncherWindow
+class LauncherWindow : public DialogWindow
 {
 private:
-    HINSTANCE hInstance;
     std::shared_ptr<SnakesDemo> snakes_demo;
     std::shared_ptr<AdventureWindow> adventure_window;
 
-    static INT_PTR CALLBACK WndProc_static(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-    INT_PTR WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+    INT_PTR DlgProc(UINT msg, WPARAM wParam, LPARAM lParam) override;
 
 public:
     explicit LauncherWindow(HINSTANCE hInstance);
-    int show_dialog();
+    int create_dialog();
 };

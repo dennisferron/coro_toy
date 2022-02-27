@@ -6,7 +6,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                    LPSTR lpCmdLine, int nCmdShow)
 {
     SnakesDemo::register_window_class(hInstance);
-    //AdventureWindow::
-    LauncherWindow launcher(hInstance);
-    return launcher.show_dialog();
+
+    auto launcher = std::make_shared<LauncherWindow>(hInstance);
+    return launcher->create_dialog();
 }
